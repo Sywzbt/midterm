@@ -11,7 +11,8 @@ def initialize_database() -> None:
     with sqlite3.connect(DB_NAME) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.executescript("""
+        cursor.executescript(
+            """
         CREATE TABLE IF NOT EXISTS member (
             mid TEXT PRIMARY KEY,
             mname TEXT NOT NULL,
@@ -51,11 +52,14 @@ def initialize_database() -> None:
         (2, '2024-01-16', 'M002', 'B002', 1, 50, 750),
         (3, '2024-01-17', 'M001', 'B003', 3, 200, 3400),
         (4, '2024-01-18', 'M003', 'B001', 1, 0, 600);
-        """)
+        """
+        )
         conn.commit()
 
 
-def input_int(prompt: str, positive_only: bool = False, allow_zero: bool = False) -> int:
+def input_int(
+    prompt: str, positive_only: bool = False, allow_zero: bool = False
+) -> int:
     """取得整數輸入並驗證"""
     while True:
         try:
@@ -103,11 +107,16 @@ def add_sale() -> None:
 
         try:
             cursor.execute("BEGIN")
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO sale (sdate, mid, bid, sqty, sdiscount, stotal) 
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (sdate, mid, bid, sqty, sdiscount, stotal))
-            cursor.execute("UPDATE book SET bstock = bstock - ? WHERE bid = ?", (sqty, bid))
+            """,
+                (sdate, mid, bid, sqty, sdiscount, stotal),
+            )
+            cursor.execute(
+                "UPDATE book SET bstock = bstock - ? WHERE bid = ?", (sqty, bid)
+            )
             conn.commit()
             print(f"=> 銷售記錄已新增！(銷售總額: {stotal:,})")
         except sqlite3.Error:
@@ -120,13 +129,15 @@ def show_report() -> None:
     with sqlite3.connect(DB_NAME) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
         SELECT s.sid, s.sdate, m.mname, b.btitle, b.bprice, s.sqty, s.sdiscount, s.stotal
         FROM sale s
         JOIN member m ON s.mid = m.mid
         JOIN book b ON s.bid = b.bid
         ORDER BY s.sid
-        """)
+        """
+        )
         rows = cursor.fetchall()
 
     for i, row in enumerate(rows, 1):
@@ -149,12 +160,14 @@ def list_sales() -> list[sqlite3.Row]:
     with sqlite3.connect(DB_NAME) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
         SELECT s.sid, m.mname, s.sdate
         FROM sale s
         JOIN member m ON s.mid = m.mid
         ORDER BY s.sid
-        """)
+        """
+        )
         return cursor.fetchall()
 
 
@@ -177,7 +190,7 @@ def update_sale() -> None:
         print("=> 錯誤：請輸入有效的數字")
         return
 
-    sid = sales[index]['sid']
+    sid = sales[index]["sid"]
     new_discount = input_int("請輸入新的折扣金額：", allow_zero=True)
 
     with sqlite3.connect(DB_NAME) as conn:
@@ -190,9 +203,12 @@ def update_sale() -> None:
         new_total = (price * sale["sqty"]) - new_discount
 
         try:
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE sale SET sdiscount = ?, stotal = ? WHERE sid = ?
-            """, (new_discount, new_total, sid))
+            """,
+                (new_discount, new_total, sid),
+            )
             conn.commit()
             print(f"=> 銷售編號 {sid} 已更新！(銷售總額: {new_total:,})")
         except sqlite3.Error:
@@ -219,7 +235,7 @@ def delete_sale() -> None:
         print("=> 錯誤：請輸入有效的數字")
         return
 
-    sid = sales[index]['sid']
+    sid = sales[index]["sid"]
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
         try:
@@ -235,7 +251,8 @@ def main() -> None:
     """主選單"""
     initialize_database()
     while True:
-        print("""
+        print(
+            """
 ***************選單***************
 1. 新增銷售記錄
 2. 顯示銷售報表
@@ -243,19 +260,20 @@ def main() -> None:
 4. 刪除銷售記錄
 5. 離開
 **********************************
-""")
+"""
+        )
         choice = input("請選擇操作項目(輸入後請按 Enter)：").strip()
         if not choice:
             continue
-        if choice == '1':
+        if choice == "1":
             add_sale()
-        elif choice == '2':
+        elif choice == "2":
             show_report()
-        elif choice == '3':
+        elif choice == "3":
             update_sale()
-        elif choice == '4':
+        elif choice == "4":
             delete_sale()
-        elif choice == '5':
+        elif choice == "5":
             print("=> 離開程式")
             sys.exit()
         else:
